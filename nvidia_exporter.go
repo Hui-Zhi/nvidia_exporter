@@ -26,35 +26,35 @@ var (
 	gaugeMetrics = map[string]*VecInfo{
 		"power_watts": &VecInfo{
 			help:   "Power Usage of an NVIDIA GPU in Watts",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"gpu_percent": &VecInfo{
 			help:   "Percent of GPU Utilized",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"memory_free": &VecInfo{
 			help:   "Number of bytes free in the GPU Memory",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"memory_total": &VecInfo{
 			help:   "Total bytes of the GPU's memory",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"memory_used": &VecInfo{
 			help:   "Total number of bytes used in the GPU Memory",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"memory_percent": &VecInfo{
 			help:   "Percent of GPU Memory Utilized",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"temperature_fahrenheit": &VecInfo{
 			help:   "GPU Temperature in Fahrenheit",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 		"temperature_celsius": &VecInfo{
 			help:   "GPU Temperature in Celsius",
-			labels: []string{"device_uuid", "device_name"},
+			labels: []string{"device_uuid", "device_name", "device_path"},
 		},
 	}
 )
@@ -116,36 +116,36 @@ func (e *Exporter) GetTelemetryFromNVML() {
 
 	for _, device := range e.devices {
 		if gpuPercent, memoryPercent, err = device.GetUtilization(); err != nil {
-			fmt.Printf("Failed to get Device Utilization for %s: %s\n", device.DeviceUUID, err.Error())
+			fmt.Printf("Failed to get Device Utilization for %s: %s\n", device.DevicePath, err.Error())
 			e.up.Set(0)
 			return
 		}
-		e.gauges["gpu_percent"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(gpuPercent))
-		e.gauges["memory_percent"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(memoryPercent))
+		e.gauges["gpu_percent"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(gpuPercent))
+		e.gauges["memory_percent"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(memoryPercent))
 
 		if tempF, tempC, err = device.GetTemperature(); err != nil {
-			fmt.Printf("Failed to get Device Temperature for %s: %s\n", device.DeviceUUID, err.Error())
+			fmt.Printf("Failed to get Device Temperature for %s: %s\n", device.DevicePath, err.Error())
 			e.up.Set(0)
 			return
 		}
-		e.gauges["temperature_celsius"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(tempC))
-		e.gauges["temperature_fahrenheit"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(tempF))
+		e.gauges["temperature_celsius"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(tempC))
+		e.gauges["temperature_fahrenheit"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(tempF))
 
 		if powerUsage, err = device.GetPowerUsage(); err != nil {
-			fmt.Printf("Failed to get Device Power Usage for %s: %s\n", device.DeviceUUID, err.Error())
+			fmt.Printf("Failed to get Device Power Usage for %s: %s\n", device.DevicePath, err.Error())
 			e.up.Set(0)
 			return
 		}
-		e.gauges["power_watts"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(powerUsage))
+		e.gauges["power_watts"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(powerUsage))
 
 		if gpuMem, err = device.GetMemoryInfo(); err != nil {
-			fmt.Printf("Failed to get Memory Info for %s: %s\n", device.DeviceUUID, err.Error())
+			fmt.Printf("Failed to get Memory Info for %s: %s\n", device.DevicePath, err.Error())
 			e.up.Set(0)
 			return
 		}
-		e.gauges["memory_free"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(gpuMem.Free))
-		e.gauges["memory_total"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(gpuMem.Total))
-		e.gauges["memory_used"].WithLabelValues(device.DeviceUUID, device.DeviceName).Set(float64(gpuMem.Used))
+		e.gauges["memory_free"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(gpuMem.Free))
+		e.gauges["memory_total"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(gpuMem.Total))
+		e.gauges["memory_used"].WithLabelValues(device.DeviceUUID, device.DeviceName, device.DevicePath).Set(float64(gpuMem.Used))
 	}
 }
 

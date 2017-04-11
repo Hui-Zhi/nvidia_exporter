@@ -2,7 +2,7 @@ package main
 
 /*
 #cgo CFLAGS: -I/usr/local/cuda-8.0/include
-#cgo LDFLAGS: -lnvidia-ml -L/usr/lib/nvidia-367
+#cgo LDFLAGS: -lnvidia-ml -L/usr/lib/nvidia-375
 
 #include "bridge.h"
 */
@@ -39,6 +39,7 @@ func getGoError(result C.nvmlReturn_t) (err error) {
 type Device struct {
 	DeviceName string
 	DeviceUUID string
+	DevicePath string
 	d          C.nvmlDevice_t
 	i          int
 }
@@ -67,6 +68,11 @@ func newDevice(nvmlDevice C.nvmlDevice_t, idx int) (dev Device, err error) {
 	if dev.DeviceName, err = dev.Name(); err != nil {
 		return
 	}
+
+	if dev.DevicePath, err = dev.Path(); err != nil {
+		return
+	}
+
 	return
 }
 
@@ -104,6 +110,19 @@ func (s *Device) UUID() (uuid string, err error) {
 func (s *Device) Name() (name string, err error) {
 	name, err = s.callGetTextFunc(C.getNvmlCharProperty(C.nvmlDeviceGetName), C.NVML_DEVICE_NAME_BUFFER_SIZE)
 	return
+}
+
+// Path returns the Devices's path, like "/dev/nvidia0, /dev/nvidia1"
+func (s *Device) Path() (string, error){
+	minor, err := s.callGetIntFunc(C.getNvmlIntProperty(C.nvmlDeviceGetMinorNumber))
+
+	if err != nil {
+		return "", err
+	}
+
+	path := fmt.Sprintf("/dev/nvidia%d", minor)
+
+	return path, err
 }
 
 // GetUtilization returns the GPU and memory usage returned as a percentage used of a given GPU device
